@@ -2,11 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v1');
+
+  // Raw body for Stripe webhook
+  app.use('/api/v1/orders/webhook', bodyParser.raw({ type: 'application/json' }));
+
 
   app.useGlobalPipes(
     new ValidationPipe({

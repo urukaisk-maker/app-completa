@@ -116,6 +116,10 @@ class AuthRepositoryImpl implements AuthRepository {
     return _storage.read(key: StorageKeys.accessToken);
   }
 
+  Future<void> sendFcmToken(String token) async {
+    await _dio.post('${ApiConstants.fullBaseUrl}/auth/fcm-token', data: {'token': token});
+  }
+
   Future<void> _saveTokens(String access, String refresh) async {
     await _storage.write(key: StorageKeys.accessToken, value: access);
     await _storage.write(key: StorageKeys.refreshToken, value: refresh);

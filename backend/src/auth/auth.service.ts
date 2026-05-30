@@ -138,4 +138,8 @@ export class AuthService {
       },
     };
   }
+
+  async updateFcmToken(userId: string, token: string | null): Promise<void> {
+    await this.userRepository.update(userId, { fcmToken: token });
+  }
 }

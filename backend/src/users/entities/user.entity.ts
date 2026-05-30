@@ -54,6 +54,9 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshTokenHash: string;
 
+  @Column({ type: 'text', nullable: true })
+  fcmToken?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

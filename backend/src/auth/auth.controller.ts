@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -52,5 +52,23 @@ export class AuthController {
       phone: user.phone,
       role: user.role,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('fcm-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Register FCM token' })
+  async registerFcmToken(@Body() body: { token: string }, @Req() req: Request) {
+    const user = (req as any).user;
+    return this.authService.updateFcmToken(user.id, body.token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('fcm-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove FCM token' })
+  async removeFcmToken(@Req() req: Request) {
+    const user = (req as any).user;
+    return this.authService.updateFcmToken(user.id, null);
   }
 }

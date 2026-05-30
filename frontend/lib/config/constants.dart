@@ -8,6 +8,10 @@ class ApiConstants {
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static const String refresh = '/auth/refresh';
+
+  // Catalog endpoints
+  static const String products = '/products';
+  static const String categories = '/categories';
 }
 
 class StorageKeys {

@@ -4,20 +4,40 @@ import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
-import 'features/auth/presentation/pages/home_screen.dart';
 import 'features/auth/presentation/pages/login_screen.dart';
+import 'features/catalog/data/repositories/catalog_repository.dart';
+import 'features/catalog/presentation/bloc/category/category_bloc.dart';
+import 'features/catalog/presentation/bloc/product_list/product_list_bloc.dart';
+import 'features/catalog/presentation/pages/product_list_screen.dart';
 
 class UrukaisKlickApp extends StatelessWidget {
   const UrukaisKlickApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider(
-      create: (_) => AuthRepositoryImpl(),
-      child: BlocProvider(
-        create: (context) => AuthBloc(
-          authRepository: context.read<AuthRepositoryImpl>(),
-        )..add(const AuthCheckSessionRequested()),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(create: (_) => AuthRepositoryImpl()),
+        RepositoryProvider(create: (_) => CatalogRepositoryImpl()),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthBloc(
+              authRepository: context.read<AuthRepositoryImpl>(),
+            )..add(const AuthCheckSessionRequested()),
+          ),
+          BlocProvider(
+            create: (context) => CategoryBloc(
+              catalogRepository: context.read<CatalogRepositoryImpl>(),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => ProductListBloc(
+              catalogRepository: context.read<CatalogRepositoryImpl>(),
+            ),
+          ),
+        ],
         child: MaterialApp(
           title: 'Urukais Klick',
           debugShowCheckedModeBanner: false,
@@ -53,7 +73,7 @@ class AuthGate extends StatelessWidget {
             );
           }
           if (state is AuthAuthenticated) {
-            return const HomeScreen();
+            return const ProductListScreen();
           }
           return const LoginScreen();
         },

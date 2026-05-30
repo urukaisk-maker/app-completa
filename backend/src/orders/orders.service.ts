@@ -9,7 +9,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
-  private stripe: Stripe;
+  private stripe: any;
 
   constructor(
     @InjectRepository(Order)
@@ -22,7 +22,7 @@ export class OrdersService {
     if (!secretKey) {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
-    this.stripe = new Stripe(secretKey, { apiVersion: '2024-06-20' });
+    this.stripe = new (Stripe as any)(secretKey, { apiVersion: '2026-05-27.dahlia' });
   }
 
   async createOrder(dto: CreateOrderDto, userId?: string): Promise<{ order: Order; clientSecret: string }> {
@@ -81,7 +81,7 @@ export class OrdersService {
     const event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 
     if (event.type === 'payment_intent.succeeded') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const paymentIntent = event.data.object as any;
       const orderId = paymentIntent.metadata?.orderId;
 
       if (orderId) {
@@ -93,7 +93,7 @@ export class OrdersService {
     }
 
     if (event.type === 'payment_intent.payment_failed') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const paymentIntent = event.data.object as any;
       const orderId = paymentIntent.metadata?.orderId;
 
       if (orderId) {

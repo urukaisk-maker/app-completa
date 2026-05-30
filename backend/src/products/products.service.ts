@@ -133,7 +133,7 @@ export class ProductsService {
     const product = await this.productRepo.findOne({ where: { id: productId } });
     if (!product) throw new NotFoundException('Product not found');
     const variant = this.variantRepo.create({ ...dto, productId });
-    return this.variantRepo.save(variant);
+    return this.variantRepo.save(variant) as unknown as Promise<ProductVariant>;
   }
 
   async updateVariant(variantId: string, dto: any): Promise<ProductVariant> {

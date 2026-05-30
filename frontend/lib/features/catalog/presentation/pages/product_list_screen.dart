@@ -10,6 +10,7 @@ import 'product_detail_screen.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
 import '../../../cart/presentation/pages/cart_screen.dart';
+import '../../../auth/presentation/pages/profile_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -56,6 +57,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(
         title: const Text('Catálogo'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            ),
+          ),
           BlocBuilder<CartBloc, CartState>(
             builder: (context, state) {
               final count = state is CartLoaded ? state.totalItems : 0;

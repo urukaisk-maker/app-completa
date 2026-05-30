@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/models/user_model.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -51,11 +52,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onCheckSession(AuthCheckSessionRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    final token = await _authRepository.getAccessToken();
-    if (token != null && token.isNotEmpty) {
-      // TODO: validate token with backend /me endpoint
-      emit(const AuthUnauthenticated());
-    } else {
+    try {
+      final userData = await _authRepository.getMe();
+      emit(AuthAuthenticated(
+        user: UserModel(
+          id: userData['id'] as String,
+          email: userData['email'] as String,
+          firstName: userData['firstName'] as String,
+          lastName: userData['lastName'] as String,
+          role: userData['role'] as String,
+          phone: userData['phone'] as String?,
+        ),
+      ));
+    } catch (_) {
       emit(const AuthUnauthenticated());
     }
   }

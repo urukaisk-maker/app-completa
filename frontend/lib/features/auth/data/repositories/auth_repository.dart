@@ -19,6 +19,12 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<Map<String, dynamic>> getMe();
+
+  Future<List<dynamic>> getAddresses();
+  Future<Map<String, dynamic>> createAddress(Map<String, dynamic> body);
+  Future<void> deleteAddress(String id);
+
   Future<void> logout();
 
   Future<String?> getAccessToken();
@@ -75,6 +81,29 @@ class AuthRepositoryImpl implements AuthRepository {
       final message = e.response?.data?['message']?.toString() ?? e.message;
       throw ServerException(message: message ?? 'Login failed', statusCode: e.response?.statusCode);
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getMe() async {
+    final response = await _dio.get('${ApiConstants.fullBaseUrl}/auth/me');
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<List<dynamic>> getAddresses() async {
+    final response = await _dio.get('${ApiConstants.fullBaseUrl}/addresses');
+    return response.data as List<dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> createAddress(Map<String, dynamic> body) async {
+    final response = await _dio.post('${ApiConstants.fullBaseUrl}/addresses', data: body);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<void> deleteAddress(String id) async {
+    await _dio.delete('${ApiConstants.fullBaseUrl}/addresses/$id');
   }
 
   @override

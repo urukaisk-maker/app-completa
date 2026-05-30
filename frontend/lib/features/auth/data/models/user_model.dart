@@ -4,6 +4,7 @@ class UserModel {
   final String firstName;
   final String lastName;
   final String role;
+  final String? phone;
 
   const UserModel({
     required this.id,
@@ -11,6 +12,7 @@ class UserModel {
     required this.firstName,
     required this.lastName,
     required this.role,
+    this.phone,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class UserModel {
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
       role: json['role'] as String,
+      phone: json['phone'] as String?,
     );
   }
 
@@ -29,6 +32,7 @@ class UserModel {
         'firstName': firstName,
         'lastName': lastName,
         'role': role,
+        'phone': phone,
       };
 
   String get fullName => '$firstName $lastName';

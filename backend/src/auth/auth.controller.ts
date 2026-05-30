@@ -1,4 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService, AuthResponse } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -34,5 +36,21 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponse> {
     return this.authService.refreshTokens(dto.refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'User profile' })
+  me(@Req() req: Request) {
+    const user = (req as any).user as { id: string; email: string; firstName: string; lastName: string; phone: string | null; role: string };
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      role: user.role,
+    };
   }
 }

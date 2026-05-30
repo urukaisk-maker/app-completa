@@ -51,8 +51,9 @@ Manuel es un desarrollador web con amplia experiencia en tecnología. Durante su
 
 ```
 urukais-klick/
-├── backend/                  # API NestJS
-├── frontend/                 # App Flutter
+├── backend/                  # API NestJS (auth, catálogo, pagos)
+├── frontend/                 # App Flutter (iOS + Android)
+├── admin/                    # Panel administración Next.js 14
 ├── infra/                    # Terraform + Kubernetes
 ├── docs/                     # Wireframes, design system, arquitectura
 ├── docker-compose.yml        # Servicios locales (DB, Cache, MQ)
@@ -86,7 +87,17 @@ npm install
 npm run start:dev
 ```
 
-### Frontend
+### Admin Panel (Next.js)
+
+```bash
+cd admin
+npm install
+npm run dev
+```
+
+Abre `http://localhost:3001` en el navegador. Se conecta automáticamente al backend NestJS en `localhost:3000`.
+
+### Frontend Mobile (Flutter)
 
 ```bash
 cd frontend

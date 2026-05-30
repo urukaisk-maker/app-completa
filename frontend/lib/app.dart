@@ -9,6 +9,7 @@ import 'features/catalog/data/repositories/catalog_repository.dart';
 import 'features/catalog/presentation/bloc/category/category_bloc.dart';
 import 'features/catalog/presentation/bloc/product_list/product_list_bloc.dart';
 import 'features/catalog/presentation/pages/product_list_screen.dart';
+import 'features/cart/presentation/bloc/cart_bloc.dart';
 
 class UrukaisKlickApp extends StatelessWidget {
   const UrukaisKlickApp({super.key});
@@ -36,6 +37,9 @@ class UrukaisKlickApp extends StatelessWidget {
             create: (context) => ProductListBloc(
               catalogRepository: context.read<CatalogRepositoryImpl>(),
             ),
+          ),
+          BlocProvider(
+            create: (_) => CartBloc(),
           ),
         ],
         child: MaterialApp(

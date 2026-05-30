@@ -5,6 +5,10 @@ import '../bloc/product_detail/product_detail_event.dart';
 import '../bloc/product_detail/product_detail_state.dart';
 import '../../../../models/product.dart';
 import '../../data/repositories/catalog_repository.dart';
+import '../../../cart/presentation/bloc/cart_bloc.dart';
+import '../../../cart/presentation/bloc/cart_event.dart';
+import '../../../cart/presentation/bloc/cart_state.dart';
+import '../../../cart/presentation/pages/cart_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -28,9 +32,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         appBar: AppBar(
           title: const Text('Detalle'),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.shopping_cart_outlined),
-              onPressed: () {},
+            BlocBuilder<CartBloc, CartState>(
+              builder: (context, state) {
+                final count = state is CartLoaded ? state.totalItems : 0;
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CartScreen()),
+                        );
+                      },
+                    ),
+                    if (count > 0)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                          child: Text(
+                            '$count',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -234,6 +270,9 @@ class _ProductContent extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: product.isActive && product.stock > 0
                         ? () {
+                            context.read<CartBloc>().add(
+                              CartItemAdded(product, quantity: quantity),
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Agregado $quantity x ${product.name} al carrito'),

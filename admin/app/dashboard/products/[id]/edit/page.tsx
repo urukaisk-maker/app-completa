@@ -32,6 +32,7 @@ export default function EditProductPage() {
     categoryId: "",
     isActive: true,
   });
+  const [variants, setVariants] = useState<{ id?: string; sku: string; size: string; color: string; stock: string; priceAdjustment: string }[]>([]);
 
   useEffect(() => {
     Promise.all([getProduct(id), getCategories()]).then(([p, c]) => {
@@ -45,6 +46,16 @@ export default function EditProductPage() {
         categoryId: p.categoryId || "",
         isActive: p.isActive,
       });
+      setVariants(
+        (p.variants || []).map((v) => ({
+          id: v.id,
+          sku: v.sku,
+          size: v.size || "",
+          color: v.color || "",
+          stock: String(v.stock),
+          priceAdjustment: String(v.priceAdjustment),
+        }))
+      );
     }).catch(console.error);
   }, [id]);
 
@@ -89,6 +100,15 @@ export default function EditProductPage() {
         stock: parseInt(form.stock, 10),
         categoryId: form.categoryId,
         isActive: form.isActive,
+        variants: variants
+          .filter((v) => v.sku.trim() !== "")
+          .map((v) => ({
+            sku: v.sku,
+            size: v.size || undefined,
+            color: v.color || undefined,
+            stock: parseInt(v.stock, 10) || 0,
+            priceAdjustment: parseFloat(v.priceAdjustment) || 0,
+          })),
       });
 
       for (let i = 0; i < previewFiles.length; i++) {
@@ -154,6 +174,47 @@ export default function EditProductPage() {
               <Switch id="active" checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} />
               <Label htmlFor="active">Producto activo</Label>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Variantes (talla / color)</CardTitle>
+            <Button type="button" variant="outline" size="sm" onClick={() => setVariants([...variants, { sku: "", size: "", color: "", stock: "", priceAdjustment: "0" }])}>
+              + Añadir variante
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {variants.length === 0 && (
+              <p className="text-sm text-muted-foreground">No hay variantes. Añade tallas o colores si el producto las tiene.</p>
+            )}
+            {variants.map((v, i) => (
+              <div key={i} className="grid grid-cols-6 gap-3 items-end border p-3 rounded-md">
+                <div className="space-y-1">
+                  <Label className="text-xs">SKU</Label>
+                  <Input value={v.sku} onChange={(e) => { const copy = [...variants]; copy[i].sku = e.target.value; setVariants(copy); }} placeholder="SKU" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Talla</Label>
+                  <Input value={v.size} onChange={(e) => { const copy = [...variants]; copy[i].size = e.target.value; setVariants(copy); }} placeholder="Ej: M" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Color</Label>
+                  <Input value={v.color} onChange={(e) => { const copy = [...variants]; copy[i].color = e.target.value; setVariants(copy); }} placeholder="Ej: Rojo" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Stock</Label>
+                  <Input type="number" min="0" value={v.stock} onChange={(e) => { const copy = [...variants]; copy[i].stock = e.target.value; setVariants(copy); }} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ajuste precio (€)</Label>
+                  <Input type="number" step="0.01" value={v.priceAdjustment} onChange={(e) => { const copy = [...variants]; copy[i].priceAdjustment = e.target.value; setVariants(copy); }} />
+                </div>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setVariants(variants.filter((_, idx) => idx !== i))}>
+                  <X className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
           </CardContent>
         </Card>
 

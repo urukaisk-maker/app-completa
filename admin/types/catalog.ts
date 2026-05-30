@@ -13,6 +13,16 @@ export interface ProductImage {
   order: number;
 }
 
+export interface ProductVariant {
+  id: string;
+  sku: string;
+  size?: string;
+  color?: string;
+  stock: number;
+  priceAdjustment: number;
+  isActive: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -23,6 +33,7 @@ export interface Product {
   categoryId: string;
   category?: Category;
   images?: ProductImage[];
+  variants?: ProductVariant[];
   createdAt: string;
   updatedAt: string;
 }

@@ -11,12 +11,14 @@ import {
   Settings,
   LogOut,
   Rocket,
+  Tags,
 } from "lucide-react";
 
 const items = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Usuarios", href: "/dashboard/users", icon: Users },
   { label: "Productos", href: "/dashboard/products", icon: Package },
+  { label: "Categorías", href: "/dashboard/categories", icon: Tags },
   { label: "Pedidos", href: "/dashboard/orders", icon: ShoppingCart },
   { label: "Configuración", href: "/dashboard/settings", icon: Settings },
 ];

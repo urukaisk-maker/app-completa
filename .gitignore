@@ -55,6 +55,9 @@ coverage/
 # Docker
 volumes/
 
+# Uploads
+uploads/
+
 # Terraform
 *.tfstate
 *.tfstate.*

@@ -1,16 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Users, Package, ShoppingCart, TrendingUp } from "lucide-react";
 
-const stats = [
-  { title: "Usuarios", value: "1,234", icon: Users, change: "+12%" },
-  { title: "Productos", value: "856", icon: Package, change: "+5%" },
-  { title: "Pedidos", value: "432", icon: ShoppingCart, change: "+18%" },
-  { title: "Ingresos", value: "€12.4k", icon: TrendingUp, change: "+23%" },
-];
+interface DashboardData {
+  totalOrders: number;
+  totalUsers: number;
+  totalProducts: number;
+  totalRevenue: number;
+  recentOrders: {
+    id: string;
+    customerName: string;
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+  }[];
+}
 
 export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null);
+
+  useEffect(() => {
+    apiFetch<DashboardData>("/analytics/dashboard")
+      .then(setData)
+      .catch(console.error);
+  }, []);
+
+  const stats = data
+    ? [
+        { title: "Usuarios", value: String(data.totalUsers), icon: Users },
+        { title: "Productos", value: String(data.totalProducts), icon: Package },
+        { title: "Pedidos", value: String(data.totalOrders), icon: ShoppingCart },
+        { title: "Ingresos", value: `€${data.totalRevenue.toFixed(2)}`, icon: TrendingUp },
+      ]
+    : [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -27,36 +54,47 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600 font-medium">{stat.change}</span> vs mes anterior
-              </p>
             </CardContent>
           </Card>
         ))}
+        {!data && (
+          <>
+            {[1,2,3,4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="pb-2"><div className="h-4 w-20 bg-muted rounded animate-pulse"/></CardHeader>
+                <CardContent><div className="h-8 w-24 bg-muted rounded animate-pulse"/></CardContent>
+              </Card>
+            ))}
+          </>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Actividad reciente</CardTitle>
-            <CardDescription>Últimas acciones en la plataforma</CardDescription>
+            <CardTitle>Pedidos recientes</CardTitle>
+            <CardDescription>Últimos 5 pedidos</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { action: "Nuevo usuario registrado", user: "Manuel Carrasco", time: "Hace 2 min" },
-                { action: "Pedido completado", user: "#1234", time: "Hace 15 min" },
-                { action: "Producto actualizado", user: "iPhone 15 Pro", time: "Hace 1 h" },
-                { action: "Usuario suspendido", user: "john@example.com", time: "Hace 3 h" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0">
-                  <div>
-                    <p className="font-medium text-sm">{item.action}</p>
-                    <p className="text-xs text-muted-foreground">{item.user}</p>
+              {data?.recentOrders.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No hay pedidos aún</p>
+              ) : (
+                data?.recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div>
+                      <p className="font-medium text-sm">{order.customerName}</p>
+                      <p className="text-xs text-muted-foreground">{order.id.slice(0, 8)}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>
+                        {order.status}
+                      </Badge>
+                      <span className="text-sm font-medium">€{Number(order.totalAmount).toFixed(2)}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">{item.time}</span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -71,8 +109,6 @@ export default function DashboardPage() {
               {[
                 { name: "API Backend", status: "Operativo", color: "bg-green-500" },
                 { name: "Base de datos", status: "Operativo", color: "bg-green-500" },
-                { name: "Redis Cache", status: "Operativo", color: "bg-green-500" },
-                { name: "RabbitMQ", status: "Operativo", color: "bg-green-500" },
               ].map((service) => (
                 <div key={service.name} className="flex items-center justify-between">
                   <span className="text-sm">{service.name}</span>

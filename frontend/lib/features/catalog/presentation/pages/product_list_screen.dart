@@ -11,6 +11,9 @@ import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
 import '../../../cart/presentation/pages/cart_screen.dart';
 import '../../../auth/presentation/pages/profile_screen.dart';
+import '../../../wishlist/presentation/bloc/wishlist_bloc.dart';
+import '../../../wishlist/presentation/bloc/wishlist_event.dart';
+import '../../../wishlist/presentation/pages/wishlist_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -57,6 +60,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(
         title: const Text('Catálogo'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_outline),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WishlistScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => Navigator.push(
@@ -269,14 +279,45 @@ class _ProductCard extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: imageUrl != null
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported)),
-                    )
-                  : const Center(child: Icon(Icons.image_not_supported)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  imageUrl != null
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported)),
+                        )
+                      : const Center(child: Icon(Icons.image_not_supported)),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: BlocBuilder<WishlistBloc, WishlistState>(
+                      builder: (context, state) {
+                        final isFav = state is WishlistLoadedState && state.favoriteIds.contains(product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<WishlistBloc>().add(WishlistItemToggled(product.id));
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              size: 20,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               flex: 2,

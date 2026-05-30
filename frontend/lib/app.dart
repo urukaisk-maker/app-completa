@@ -10,6 +10,8 @@ import 'features/catalog/presentation/bloc/category/category_bloc.dart';
 import 'features/catalog/presentation/bloc/product_list/product_list_bloc.dart';
 import 'features/catalog/presentation/pages/product_list_screen.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
+import 'features/wishlist/data/repositories/wishlist_repository.dart';
+import 'features/wishlist/presentation/bloc/wishlist_bloc.dart';
 
 class UrukaisKlickApp extends StatelessWidget {
   const UrukaisKlickApp({super.key});
@@ -20,6 +22,7 @@ class UrukaisKlickApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (_) => AuthRepositoryImpl()),
         RepositoryProvider(create: (_) => CatalogRepositoryImpl()),
+        RepositoryProvider(create: (_) => WishlistRepositoryImpl()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -40,6 +43,11 @@ class UrukaisKlickApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => CartBloc(),
+          ),
+          BlocProvider(
+            create: (context) => WishlistBloc(
+              repository: context.read<WishlistRepositoryImpl>(),
+            )..add(const WishlistLoaded()),
           ),
         ],
         child: MaterialApp(

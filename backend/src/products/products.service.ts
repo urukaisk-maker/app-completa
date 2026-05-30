@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
+import { ProductVariant } from './entities/product-variant.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -24,14 +25,20 @@ export class ProductsService {
     private readonly productRepo: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly imageRepo: Repository<ProductImage>,
+    @InjectRepository(ProductVariant)
+    private readonly variantRepo: Repository<ProductVariant>,
   ) {}
 
   async create(dto: CreateProductDto): Promise<Product> {
-    const { images, ...rest } = dto;
+    const { images, variants, ...rest } = dto;
     const product = this.productRepo.create(rest);
 
     if (images && images.length > 0) {
       product.images = images.map((img) => this.imageRepo.create(img));
+    }
+
+    if (variants && variants.length > 0) {
+      product.variants = variants.map((v) => this.variantRepo.create(v));
     }
 
     return this.productRepo.save(product);
@@ -69,7 +76,7 @@ export class ProductsService {
 
     const [data, total] = await this.productRepo.findAndCount({
       where,
-      relations: ['category', 'images'],
+      relations: ['category', 'images', 'variants'],
       order: { [sortBy]: sortOrder },
       skip: (page - 1) * limit,
       take: limit,
@@ -81,7 +88,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepo.findOne({
       where: { id, isActive: true },
-      relations: ['category', 'images'],
+      relations: ['category', 'images', 'variants'],
     });
     if (!product) throw new NotFoundException('Product not found');
     return product;
@@ -89,12 +96,16 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findOne(id);
-    const { images, ...rest } = dto;
+    const { images, variants, ...rest } = dto;
 
     Object.assign(product, rest);
 
     if (images) {
       product.images = images.map((img) => this.imageRepo.create(img));
+    }
+
+    if (variants) {
+      product.variants = variants.map((v) => this.variantRepo.create(v));
     }
 
     return this.productRepo.save(product);
@@ -116,5 +127,24 @@ export class ProductsService {
   async removeImage(imageId: string): Promise<void> {
     const result = await this.imageRepo.delete(imageId);
     if (result.affected === 0) throw new NotFoundException('Image not found');
+  }
+
+  async addVariant(productId: string, dto: any): Promise<ProductVariant> {
+    const product = await this.productRepo.findOne({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Product not found');
+    const variant = this.variantRepo.create({ ...dto, productId });
+    return this.variantRepo.save(variant);
+  }
+
+  async updateVariant(variantId: string, dto: any): Promise<ProductVariant> {
+    const variant = await this.variantRepo.findOne({ where: { id: variantId } });
+    if (!variant) throw new NotFoundException('Variant not found');
+    Object.assign(variant, dto);
+    return this.variantRepo.save(variant);
+  }
+
+  async removeVariant(variantId: string): Promise<void> {
+    const result = await this.variantRepo.delete(variantId);
+    if (result.affected === 0) throw new NotFoundException('Variant not found');
   }
 }

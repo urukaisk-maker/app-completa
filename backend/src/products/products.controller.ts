@@ -105,4 +105,25 @@ export class ProductsController {
   removeImage(@Param('imageId', ParseUUIDPipe) imageId: string) {
     return this.service.removeImage(imageId);
   }
+
+  @Post(':id/variants')
+  addVariant(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: any,
+  ) {
+    return this.service.addVariant(id, dto);
+  }
+
+  @Patch('variants/:variantId')
+  updateVariant(
+    @Param('variantId', ParseUUIDPipe) variantId: string,
+    @Body() dto: any,
+  ) {
+    return this.service.updateVariant(variantId, dto);
+  }
+
+  @Delete('variants/:variantId')
+  removeVariant(@Param('variantId', ParseUUIDPipe) variantId: string) {
+    return this.service.removeVariant(variantId);
+  }
 }

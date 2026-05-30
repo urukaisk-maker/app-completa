@@ -7,7 +7,9 @@ import {
   IsString,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductImageDto {
   @IsString()
@@ -18,6 +20,34 @@ export class CreateProductImageDto {
   @Min(0)
   @IsOptional()
   order?: number;
+}
+
+export class CreateProductVariantDto {
+  @IsString()
+  @IsNotEmpty()
+  sku: string;
+
+  @IsString()
+  @IsOptional()
+  size?: string;
+
+  @IsString()
+  @IsOptional()
+  color?: string;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  stock?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  priceAdjustment?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }
 
 export class CreateProductDto {
@@ -48,4 +78,9 @@ export class CreateProductDto {
 
   @IsOptional()
   images?: CreateProductImageDto[];
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductVariantDto)
+  variants?: CreateProductVariantDto[];
 }

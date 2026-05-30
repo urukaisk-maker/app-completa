@@ -22,6 +22,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   int _currentImageIndex = 0;
+  ProductVariant? _selectedVariant;
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +199,7 @@ class _ProductContent extends StatelessWidget {
 
                 // Price
                 Text(
-                  '\u20AC${product.price.toStringAsFixed(2)}',
+                  '\u20AC${((product.price) + (_selectedVariant?.priceAdjustment ?? 0)).toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -219,9 +220,17 @@ class _ProductContent extends StatelessWidget {
 
                 // Stock
                 Text(
-                  'Stock disponible: ${product.stock}',
+                  'Stock disponible: ${_selectedVariant?.stock ?? product.stock}',
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
+
+                const SizedBox(height: 16),
+
+                // Variants selector
+                if (product.variants.isNotEmpty) ...[
+                  _buildVariantSelector(product),
+                  const SizedBox(height: 16),
+                ],
 
                 const SizedBox(height: 24),
               ],
@@ -260,7 +269,9 @@ class _ProductContent extends StatelessWidget {
                       Text('$quantity', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       IconButton(
                         icon: const Icon(Icons.add),
-                        onPressed: quantity < product.stock ? () => onQuantityChanged(quantity + 1) : null,
+                        onPressed: quantity < (_selectedVariant?.stock ?? product.stock)
+                            ? () => onQuantityChanged(quantity + 1)
+                            : null,
                       ),
                     ],
                   ),
@@ -268,10 +279,16 @@ class _ProductContent extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: product.isActive && product.stock > 0
+                    onPressed: product.isActive && (product.stock > 0 || _selectedVariant != null)
                         ? () {
+                            if (product.variants.isNotEmpty && _selectedVariant == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Selecciona una talla/color')),
+                              );
+                              return;
+                            }
                             context.read<CartBloc>().add(
-                              CartItemAdded(product, quantity: quantity),
+                              CartItemAdded(product, quantity: quantity, variantId: _selectedVariant?.id),
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -292,6 +309,66 @@ class _ProductContent extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildVariantSelector(Product product) {
+    final sizes = product.variants.where((v) => v.size != null).map((v) => v.size!).toSet().toList();
+    final colors = product.variants.where((v) => v.color != null).map((v) => v.color!).toSet().toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (sizes.isNotEmpty) ...[
+          const Text('Talla', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: sizes.map((size) {
+              final isSelected = _selectedVariant?.size == size;
+              return ChoiceChip(
+                label: Text(size),
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() {
+                      _selectedVariant = product.variants.firstWhere(
+                        (v) => v.size == size && (_selectedVariant?.color == null || v.color == _selectedVariant?.color),
+                        orElse: () => product.variants.firstWhere((v) => v.size == size),
+                      );
+                    });
+                  }
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (colors.isNotEmpty) ...[
+          const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: colors.map((color) {
+              final isSelected = _selectedVariant?.color == color;
+              return ChoiceChip(
+                label: Text(color),
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() {
+                      _selectedVariant = product.variants.firstWhere(
+                        (v) => v.color == color && (_selectedVariant?.size == null || v.size == _selectedVariant?.size),
+                        orElse: () => product.variants.firstWhere((v) => v.color == color),
+                      );
+                    });
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        ],
       ],
     );
   }

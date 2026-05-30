@@ -14,7 +14,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   void _onItemAdded(CartItemAdded event, Emitter<CartState> emit) {
     if (state is! CartLoaded) return;
     final current = state as CartLoaded;
-    final index = current.items.indexWhere((i) => i.product.id == event.product.id);
+    final index = current.items.indexWhere(
+      (i) => i.product.id == event.product.id && i.variantId == event.variantId,
+    );
 
     if (index >= 0) {
       final updated = [...current.items];
@@ -25,7 +27,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     } else {
       emit(CartLoaded([
         ...current.items,
-        CartItem(product: event.product, quantity: event.quantity),
+        CartItem(product: event.product, quantity: event.quantity, variantId: event.variantId),
       ]));
     }
   }
@@ -34,7 +36,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     if (state is! CartLoaded) return;
     final current = state as CartLoaded;
     emit(CartLoaded(
-      current.items.where((i) => i.product.id != event.productId).toList(),
+      current.items.where((i) => !(i.product.id == event.productId && i.variantId == event.variantId)).toList(),
     ));
   }
 
@@ -43,12 +45,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     final current = state as CartLoaded;
     if (event.quantity <= 0) {
       emit(CartLoaded(
-        current.items.where((i) => i.product.id != event.productId).toList(),
+        current.items.where((i) => !(i.product.id == event.productId && i.variantId == event.variantId)).toList(),
       ));
       return;
     }
     final updated = current.items.map((item) {
-      if (item.product.id == event.productId) {
+      if (item.product.id == event.productId && item.variantId == event.variantId) {
         return item.copyWith(quantity: event.quantity);
       }
       return item;

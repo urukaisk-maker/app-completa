@@ -74,14 +74,14 @@ class CartScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.product.name,
+                                    item.displayName,
                                     style: const TextStyle(fontWeight: FontWeight.w600),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '\u20AC${item.product.price.toStringAsFixed(2)}',
+                                    '\u20AC${item.totalPrice.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       color: Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
@@ -101,6 +101,7 @@ class CartScreen extends StatelessWidget {
                                                 CartItemQuantityChanged(
                                                   item.product.id,
                                                   item.quantity - 1,
+                                                  variantId: item.variantId,
                                                 ),
                                               )
                                           : null,
@@ -113,6 +114,7 @@ class CartScreen extends StatelessWidget {
                                                 CartItemQuantityChanged(
                                                   item.product.id,
                                                   item.quantity + 1,
+                                                  variantId: item.variantId,
                                                 ),
                                               )
                                           : null,
@@ -128,7 +130,7 @@ class CartScreen extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.delete_outline, color: Colors.red),
                               onPressed: () => context.read<CartBloc>().add(
-                                CartItemRemoved(item.product.id),
+                                CartItemRemoved(item.product.id, variantId: item.variantId),
                               ),
                             ),
                           ],

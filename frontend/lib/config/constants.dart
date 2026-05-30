@@ -1,5 +1,8 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:3000',
+  );
   static const String apiPrefix = '/api/v1';
 
   static String get fullBaseUrl => '$baseUrl$apiPrefix';

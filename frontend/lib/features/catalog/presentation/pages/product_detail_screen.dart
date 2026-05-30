@@ -9,6 +9,7 @@ import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
 import '../../../cart/presentation/pages/cart_screen.dart';
+import '../../../reviews/data/repositories/reviews_repository.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -23,6 +24,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   int _currentImageIndex = 0;
   ProductVariant? _selectedVariant;
+  final _reviewsRepo = ReviewsRepositoryImpl();
+  List<Map<String, dynamic>> _reviews = [];
+  bool _reviewsLoading = true;
+  int _userRating = 0;
+  final _commentCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    try {
+      final data = await _reviewsRepo.getReviews(widget.productId);
+      setState(() {
+        _reviews = data.cast<Map<String, dynamic>>();
+        _reviewsLoading = false;
+      });
+    } catch (_) {
+      setState(() => _reviewsLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,6 +256,10 @@ class _ProductContent extends StatelessWidget {
                   const SizedBox(height: 16),
                 ],
 
+                const Divider(),
+                const SizedBox(height: 16),
+                _buildReviewsSection(context, product.id),
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -369,6 +397,97 @@ class _ProductContent extends StatelessWidget {
             }).toList(),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context, String productId) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Reseñas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        if (_reviewsLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (_reviews.isEmpty)
+          const Text('Aún no hay reseñas. Sé el primero en opinar.')
+        else
+          Column(
+            children: _reviews.map((r) {
+              final user = r['user'] as Map<String, dynamic>?;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(user?['firstName'] ?? 'Usuario', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          const Spacer(),
+                          Row(
+                            children: List.generate(5, (i) => Icon(
+                              i < (r['rating'] as int) ? Icons.star : Icons.star_border,
+                              size: 16,
+                              color: Colors.amber,
+                            )),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      if (r['comment'] != null) Text(r['comment'] as String),
+                      Text(
+                        DateTime.parse(r['createdAt'] as String).toLocal().toString().split(' ')[0],
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        const SizedBox(height: 16),
+        const Text('Tu opinión', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Row(
+          children: List.generate(5, (i) => IconButton(
+            icon: Icon(
+              i < _userRating ? Icons.star : Icons.star_border,
+              color: Colors.amber,
+            ),
+            onPressed: () => setState(() => _userRating = i + 1),
+          )),
+        ),
+        TextField(
+          controller: _commentCtrl,
+          decoration: const InputDecoration(
+            hintText: 'Escribe tu reseña...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        const SizedBox(height: 8),
+        ElevatedButton(
+          onPressed: _userRating > 0
+              ? () async {
+                  try {
+                    await _reviewsRepo.createReview(productId, _userRating, comment: _commentCtrl.text);
+                    final data = await _reviewsRepo.getReviews(productId);
+                    setState(() {
+                      _reviews = data.cast<Map<String, dynamic>>();
+                      _userRating = 0;
+                      _commentCtrl.clear();
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              : null,
+          child: const Text('Enviar reseña'),
+        ),
       ],
     );
   }
